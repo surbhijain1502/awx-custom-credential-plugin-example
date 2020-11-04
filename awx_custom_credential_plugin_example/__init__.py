@@ -1,31 +1,48 @@
 import collections
-
+from django.utils.translation import ugettext_lazy as _
+import requests
+import base64
 CredentialPlugin = collections.namedtuple('CredentialPlugin', ['name', 'inputs', 'backend'])
 
-def some_lookup_function(**kwargs):
-    #
-    # IMPORTANT:
-    # replace this section of code with Python code that *actually*
-    # interfaces with some third party credential system
-    # (*this* code is just provided for the sake of example)
-    #
-    url = kwargs.get('url')
-    token = kwargs.get('token')
-    identifier = kwargs.get('identifier')
-
-    if token != 'VALID':
-        raise ValueError('Invalid token!')
-
-    value = {
-        'username': 'mary',
-        'email': 'mary@example.org',
-        'password': 'super-secret'
+def handle_auth(**kwargs):
+    token = None
+    post_data = {
+        "grant_type": "client_credentials", 
+        "scope":"siem" 
     }
+    post_header = {
+     "Authorization": 'Basic ' + base64.b64encode(bytes(kwargs['client_id'] + ":" + kwargs['client_secret'], 'ascii')).decode('ascii')2
+    }
+    response = requests.post(
+        endpoint,
+        data = post_data,
+        headers = post_header, 
+        verify = True,
+        proxies = {
+         'https': proxy_url
+        },
+        timeout = (5, 30))
+    print(response.text)
 
-    if identifier in value:
-        return value[identifier]
 
-    raise ValueError(f'Could not find a value for {identifier}.')
+
+def get_ID(**kwargs):
+    return 1
+
+
+def get_Pwd(**kwargs):
+    return 1
+
+def centrify_backend(**kwargs):
+    url = kwargs.get('url')
+    acc_name = kwargs.get('account-name')
+    system_name = kwargs.get('system-name')
+    client_id = kwargs.get('client_id')
+    client_password = kwargs.get('client_password')
+    endpoint = urljoin(url,'/oauth2/token/oauthsiem')
+    token = handle_auth(endpoint,client_id,client_password)
+    acc_id = get_ID(token,system_name,acc_name)
+    return get_Pwd(acc_id,token,url)
 
 example_plugin = CredentialPlugin(
     'Example AWX Credential Plugin',
@@ -47,28 +64,36 @@ example_plugin = CredentialPlugin(
     # "I would like Machine Credential A to retrieve its username using
     # Credential-O-Matic B at identifier=some_key"
     inputs={
-        'fields': [{
-            'id': 'url',
-            'label': 'Server URL',
-            'type': 'string',
-        }, {
-            'id': 'token',
-            'label': 'Authentication Token',
-            'type': 'string',
-            'secret': True,
-        }],
-        'metadata': [{
-            'id': 'identifier',
-            'label': 'Identifier',
-            'type': 'string',
-            'help_text': 'The name of the key in My Credential System to fetch.'
-        }],
-        'required': ['url', 'token', 'secret_key'],
+     'fields': [{
+        'id': 'url',
+        'label': _('PAS TENANT URL'),
+        'type': 'string',
+        'format': 'url',
+     }, {
+        'id': 'account-name',
+        'label': _('Account Name'),
+        'type': 'string',
+        'secret': True,
+     }, {
+        'id': 'system-name',
+        'label': _('System Name'),
+        'type': 'string',
+     }, {
+         'id':'client_id',
+         'label':_('PAS TENANT USER'),
+         'type':'string',
+     }, {
+          'id':'client_password',
+          'label':_('PAS TENANT PASSWORD'),
+          'type':'string',
+          'secret':True,
+     }],
+     'required': ['url', 'account-name', 'system-name','client_id','client_password'],
     },
     # backend is a callable function which will be passed all of the values
     # defined in `inputs`; this function is responsible for taking the arguments,
     # interacting with the third party credential management system in question
     # using Python code, and returning the value from the third party
     # credential management system
-    backend = some_lookup_function
+    backend = centrify_backend
 )

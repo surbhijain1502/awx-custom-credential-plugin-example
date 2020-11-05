@@ -1,13 +1,9 @@
+from .plugin import CredentialPlugin, raise_for_status
 import collections
 from django.utils.translation import ugettext_lazy as _
 import requests
 import base64
 CredentialPlugin = collections.namedtuple('CredentialPlugin', ['name', 'inputs', 'backend'])
-
-from .plugin import CredentialPlugin, raise_for_status
-from django.utils.translation import ugettext_lazy as _
-import requests
-import base64
 
 pas_inputs = {
     'fields': [{

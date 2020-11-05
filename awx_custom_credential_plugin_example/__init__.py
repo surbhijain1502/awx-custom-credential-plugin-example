@@ -1,4 +1,3 @@
-from .plugin import CredentialPlugin, raise_for_status
 import collections
 from django.utils.translation import ugettext_lazy as _
 import requests
@@ -52,7 +51,7 @@ def handle_auth(**kwargs):
         },
         timeout = (5, 30)
     )
-    raise_for_status(response)
+    #raise_for_status(response)
     print(response.text)
     tokens = json.loads(response.text)
     return tokens['access_token']
@@ -79,7 +78,7 @@ def get_ID(**kwargs):
     tokens = json.loads(response.text)
     result_str=tokens["Result"]["Results"]
     acc_ID=result_str[0]["Row"]["ID"]
-    raise_for_status(response)
+    #raise_for_status(response)
     return acc_ID
 
 def get_Pwd(**kwargs):
@@ -94,7 +93,7 @@ def get_Pwd(**kwargs):
         },
         timeout = (5, 30)
     )
-    raise_for_status(response)
+    #raise_for_status(response)
     print(response.text)
     return 1
 
